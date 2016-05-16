@@ -1,35 +1,31 @@
 'use strict';
 
-var socket;
+var socket, player;
 
 $(() => {
   socket = io();
 
-  socket.on('messageLog', function(messageLog) {
-    var $lis = messageLog.map(makeMessageElement);
-    $('#messages').append($lis);
+  socket.on('playerNum', playerNum => {
+    player = playerNum;
+    $('#status').text(`Waiting for opponent.`);
   });
 
-  socket.on('chat', function(message) {
-    var $li = makeMessageElement(message);
-    $('#messages').append($li);
+  socket.on('gameStart', () => {
+    if(player) {
+      $('#rpsButtons').show();
+      $('#status').text(`Rock Paper Scissors!!!`);
+    }
   });
 
-  $('#send').click(sendMessage);
+  $('button.rpsButton').on('click', makeSelection);
 });
 
-function sendMessage() {
-  var name = $("#name").val();
-  var text = $('#newMessage').val();
-  $('#newMessage').val('');
+function makeSelection(e) {
+  $('.rpsButton').off('click');
+  $(e.target).addClass('active');
 
-  socket.emit('newMessage', {
-    name: name,
-    text: text
-  });
-}
+  var selection = $(e.target).data('rps');
+  socket.emit('selection', selection);
 
-function makeMessageElement(message) {
-  return $('<li>').text(`${message.name} - ${message.text}`);
 }
 
