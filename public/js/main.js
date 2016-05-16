@@ -1,19 +1,35 @@
 'use strict';
 
-// connects to socket server
-var socket = io();
-// socket is the connection
-
-socket.on('color', function(color) {
-  console.log('color:', color);
-  $('body').css('background-color', color);
-});
+var socket;
 
 $(() => {
-  $('#myButton').click(clickButton);
+  socket = io();
+
+  socket.on('messageLog', function(messageLog) {
+    var $lis = messageLog.map(makeMessageElement);
+    $('#messages').append($lis);
+  });
+
+  socket.on('chat', function(message) {
+    var $li = makeMessageElement(message);
+    $('#messages').append($li);
+  });
+
+  $('#send').click(sendMessage);
 });
 
-function clickButton() {
-  socket.emit('data', {key: 'value'});
+function sendMessage() {
+  var name = $("#name").val();
+  var text = $('#newMessage').val();
+  $('#newMessage').val('');
+
+  socket.emit('newMessage', {
+    name: name,
+    text: text
+  });
+}
+
+function makeMessageElement(message) {
+  return $('<li>').text(`${message.name} - ${message.text}`);
 }
 

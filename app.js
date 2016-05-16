@@ -21,17 +21,26 @@ var server = http.createServer(app);
 
 var io = require('socket.io')(server);
 
+
+var messageLog = [];
+
 io.on('connection', function(socket) {
   console.log('Client connected.');
-  socket.on('data', function(data) {
-    console.log('data:', data);
-    var colors = ['blue', 'red', 'yellow'];
-    var index = Math.floor(Math.random() * colors.length);
-    socket.emit('color', colors[index]);
+
+  socket.emit('messageLog', messageLog);
+
+  // receive new message from one client
+  socket.on('newMessage', function(message) {
+    console.log('message:', message);
+    messageLog.push(message);
+
+    // broadcast that message to all clients
+    io.emit('chat', message);
   });
 
-
 });
+
+
 
 server.listen(PORT, err => {
   console.log(err || `Server listening on port ${PORT}`);
