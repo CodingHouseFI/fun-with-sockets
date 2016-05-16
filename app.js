@@ -7,6 +7,8 @@ var morgan = require('morgan');
 var http = require('http');
 var path = require('path');
 
+var rps = require('./rps');
+
 var app = express();
 
 app.use(morgan('dev'));
@@ -21,39 +23,12 @@ var server = http.createServer(app);
 
 var io = require('socket.io')(server);
 
-var userCount = 0;
-var selections = [];
 
 io.on('connection', function(socket) {
-  userCount++;
-  console.log('userCount:', userCount);
 
-  if(userCount === 1 || userCount === 2) {
-    socket.emit('playerNum', userCount);
-  }
-
-  if(userCount === 2) {
-    io.emit('gameStart', null);
-  }
-
-  socket.on('selection', selection => {
-    console.log('selection:', selection);
-    selections.push(selection);
-
-    if(selections.length === 2) {
-      // decide a winner
-    }
-  })
-
-
-  socket.on('disconnect', function() {
-    userCount--;
-    console.log('userCount:', userCount);
-  });
+  rps.initGame(io, socket);
 
 });
-
-
 
 server.listen(PORT, err => {
   console.log(err || `Server listening on port ${PORT}`);
